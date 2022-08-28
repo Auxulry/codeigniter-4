@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers\API;
 
+use App\Models\ProductCategories;
 use CodeIgniter\RESTful\ResourceController;
 
 class ProductCategoriesController extends ResourceController
@@ -12,7 +13,26 @@ class ProductCategoriesController extends ResourceController
      */
     public function index()
     {
-        return $this->respond([], 200, 'Index Product Categories');
+        $query = new ProductCategories();
+
+        $items = $query->orderBy('created_at', 'desc')->findAll();
+        $totalItems = $query->countAllResults();
+
+        $data = [
+            'items' => $items,
+            'total_items' => $totalItems
+        ];
+
+        $response = [
+            'status'   => 200,
+            'error'    => null,
+            'messages' => [
+                'success' => 'Get Product Categories.'
+            ],
+            'data' => $data
+        ];
+
+        return $this->respond($response);
     }
 
     /**
@@ -22,7 +42,13 @@ class ProductCategoriesController extends ResourceController
      */
     public function show($id = null)
     {
-        return $this->respond([], 200, 'Show Product Categories');
+        $query = new ProductCategories();
+        $data = $query->where('id', $id)->first();
+        if ($data) {
+            return $this->respond($data, 200, 'Show Product Categories');
+        }
+
+        return $this->failNotFound('Data not found with id ' . $id . '.', 404);
     }
 
     /**
@@ -32,7 +58,25 @@ class ProductCategoriesController extends ResourceController
      */
     public function create()
     {
-        return $this->respond([], 201, 'Created Product Categories');
+        $query = new ProductCategories();
+
+        $data = [
+            'name' => $this->request->getVar('name'),
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        $query->insert($data);
+
+        $response = [
+            'status'   => 201,
+            'error'    => null,
+            'messages' => [
+                'success' => 'Created Product Category.'
+            ]
+        ];
+
+        return $this->respondCreated($response, 'Created Product Category.');
     }
 
     /**
@@ -42,7 +86,26 @@ class ProductCategoriesController extends ResourceController
      */
     public function update($id = null)
     {
-        return $this->respond([], 200, 'Updated Product Categories');
+        $query = new ProductCategories();
+
+        $raw = $this->request->getRawInput();
+
+        $data = [
+            'name' => $raw['name'],
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        $query->update($id, $data);
+
+        $response = [
+            'status'   => 200,
+            'error'    => null,
+            'messages' => [
+                'success' => 'Updated Product Category.'
+            ]
+        ];
+
+        return $this->respond($response);
     }
 
     /**
@@ -52,6 +115,21 @@ class ProductCategoriesController extends ResourceController
      */
     public function delete($id = null)
     {
-        return $this->respond([], 200, 'Deleted Product Categories');
+        $query = new ProductCategories();
+        $data = $query->find($id);
+        if ($data) {
+            $query->delete($id);
+            $response = [
+                'status'   => 200,
+                'error'    => null,
+                'messages' => [
+                    'success' => 'Deleted Product Category'
+                ]
+            ];
+
+            return $this->respondDeleted($response);
+        }
+
+        return $this->failNotFound('Data not found with id ' . $id . '.', 404);
     }
 }
