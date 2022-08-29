@@ -1,0 +1,50 @@
+html,
+body {
+    height: 100%;
+    background-color: #F3F3F3;
+}
+
+#wrapper {
+    display: flex;
+}
+
+#wrapper #content-wrapper {
+    background-color: #f8f9fc;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+#wrapper #content-wrapper #content {
+    flex: 1 0 auto;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+@-webkit-keyframes growIn {
+    0% {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+}
+
+@keyframes growIn {
+    0% {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+}
+
+.main {
+    padding: 0 2rem;
+}

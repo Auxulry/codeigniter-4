@@ -36,9 +36,14 @@ $routes->set404Override();
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
 
-$routes->resource('products', ['controller' => 'API\ProductsController']);
-$routes->resource('product-categories', ['controller' => 'API\ProductCategoriesController']);
+$routes->get('/admin', 'Admin\HomeController::authentication');
+$routes->get('/admin/products', 'Admin\ProductsController::index');
+$routes->get('/admin/product-categories', 'Admin\ProductCategoriesController::index');
 
+$routes->resource('/api/products', ['controller' => 'API\ProductsController']);
+$routes->post('/api/products/ajax-load', 'API\ProductsController::ajaxList');
+$routes->resource('/api/product-categories', ['controller' => 'API\ProductCategoriesController']);
+$routes->post('/api/product-categories/ajax-load', 'API\ProductCategoriesController::ajaxList');
 /*
  * --------------------------------------------------------------------
  * Additional Routing

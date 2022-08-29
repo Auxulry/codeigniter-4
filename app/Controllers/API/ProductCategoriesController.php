@@ -13,7 +13,7 @@ class ProductCategoriesController extends ResourceController
      */
     public function index()
     {
-        $query = new ProductCategories();
+        $query = new ProductCategories($this->request);
 
         $items = $query->orderBy('created_at', 'desc')->findAll();
         $totalItems = $query->countAllResults();
@@ -36,16 +36,58 @@ class ProductCategoriesController extends ResourceController
     }
 
     /**
+     * Return an array of resource objects, themselves in array format
+     *
+     * @return mixed
+     */
+    public function ajaxList()
+    {
+        $datatable = new ProductCategories($this->request);
+
+        if ($this->request->getMethod(true) === 'POST') {
+            $lists = $datatable->getDatatables();
+            $data = [];
+            $no = $this->request->getPost('start');
+
+            foreach ($lists as $list) {
+                $no++;
+                $row = [];
+                $row[] = $list->id;
+                $row[] = $list->name;
+                $row[] = '<div class="d-flex justify-content-evenly align-items-center"><button class="btn btn-primary" onclick="update(' . $list->id . ')" >edit</button><button class="btn btn-danger" onclick="destroy(' . $list->id . ')">delete</button></div>';
+                $data[] = $row;
+            }
+
+            $output = [
+                'draw' => $this->request->getPost('draw'),
+                'recordsTotal' => $datatable->countAll(),
+                'recordsFiltered' => $datatable->countFiltered(),
+                'data' => $data
+            ];
+
+            echo json_encode($output);
+        }
+    }
+
+    /**
      * Return the properties of a resource object
      *
      * @return mixed
      */
     public function show($id = null)
     {
-        $query = new ProductCategories();
+        $query = new ProductCategories($this->request);
         $data = $query->where('id', $id)->first();
         if ($data) {
-            return $this->respond($data, 200, 'Show Product Categories');
+            $response = [
+                'status'   => 200,
+                'error'    => null,
+                'messages' => [
+                    'success' => 'Updated Product Category.'
+                ],
+                'data' => $data
+            ];
+            return $this->respond($response);
         }
 
         return $this->failNotFound('Data not found with id ' . $id . '.', 404);
@@ -58,7 +100,7 @@ class ProductCategoriesController extends ResourceController
      */
     public function create()
     {
-        $query = new ProductCategories();
+        $query = new ProductCategories($this->request);
 
         $data = [
             'name' => $this->request->getVar('name'),
@@ -86,7 +128,7 @@ class ProductCategoriesController extends ResourceController
      */
     public function update($id = null)
     {
-        $query = new ProductCategories();
+        $query = new ProductCategories($this->request);
 
         $raw = $this->request->getRawInput();
 
@@ -115,7 +157,7 @@ class ProductCategoriesController extends ResourceController
      */
     public function delete($id = null)
     {
-        $query = new ProductCategories();
+        $query = new ProductCategories($this->request);
         $data = $query->find($id);
         if ($data) {
             $query->delete($id);

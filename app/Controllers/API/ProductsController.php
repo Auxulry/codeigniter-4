@@ -1,7 +1,9 @@
 <?php
 namespace App\Controllers\API;
 
+use App\Models\Products;
 use CodeIgniter\RESTful\ResourceController;
+use Config\Services;
 
 class ProductsController extends ResourceController
 {
@@ -10,9 +12,37 @@ class ProductsController extends ResourceController
      *
      * @return mixed
      */
-    public function index()
+    public function ajaxList()
     {
-        return $this->respond([], 200, 'Index Product Categories');
+        $request = Services::request();
+        $datatable = new Products($request);
+
+        if ($request->getMethod(true) === 'POST') {
+            $lists = $datatable->getDatatables();
+            $data = [];
+            $no = $request->getPost('start');
+
+            foreach ($lists as $list) {
+                $no++;
+                $row = [];
+                $row[] = $list->id;
+                $row[] = $list->name;
+                $row[] = $list->category_name;
+                $row[] = $list->description;
+                $row[] = $list->price;
+                $row[] = '<div class="d-flex justify-content-evenly align-items-center"><button class="btn btn-primary" onclick="update(' . $list->id . ')" >edit</button><button class="btn btn-danger" onclick="destroy(' . $list->id . ')">delete</button></div>';
+                $data[] = $row;
+            }
+
+            $output = [
+                'draw' => $request->getPost('draw'),
+                'recordsTotal' => $datatable->countAll(),
+                'recordsFiltered' => $datatable->countFiltered(),
+                'data' => $data
+            ];
+
+            echo json_encode($output);
+        }
     }
 
     /**
@@ -22,7 +52,22 @@ class ProductsController extends ResourceController
      */
     public function show($id = null)
     {
-        return $this->respond([], 200, 'Show Product Categories');
+        $query = new Products($this->request);
+        $data = $query->where('id', $id)->first();
+        if ($data) {
+            $response = [
+                'status'   => 200,
+                'error'    => null,
+                'messages' => [
+                    'success' => 'Show Product.'
+                ],
+                'data' => $data
+            ];
+
+            return $this->respond($response);
+        }
+
+        return $this->failNotFound('Data not found with id ' . $id . '.', 404);
     }
 
     /**
@@ -32,7 +77,37 @@ class ProductsController extends ResourceController
      */
     public function create()
     {
-        return $this->respond([], 201, 'Created Product Categories');
+        $query = new Products($this->request);
+
+        $img = $this->request->getFile('image');
+
+        if ($img) {
+            $filepath = $img->getRandomName();
+            $img->move('uploads/', $filepath);
+        }
+        $data = ['errors' => 'The file has already been moved.'];
+
+        $data = [
+            'name' => $this->request->getVar('name'),
+            'category_id' => $this->request->getVar('category_id'),
+            'description' => $this->request->getVar('description'),
+            'price' => $this->request->getVar('price'),
+            'image' => '/uploads/' . $filepath,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        $query->insert($data);
+
+        $response = [
+            'status'   => 201,
+            'error'    => null,
+            'messages' => [
+                'success' => 'Created Product.'
+            ]
+        ];
+
+        return $this->respondCreated($response, 'Created Product.');
     }
 
     /**
@@ -42,7 +117,27 @@ class ProductsController extends ResourceController
      */
     public function update($id = null)
     {
-        return $this->respond([], 200, 'Updated Product Categories');
+        $query = new Products($this->request);
+
+        $data = [
+            'name' => $this->request->getVar('name'),
+            'category_id' => $this->request->getVar('category_id'),
+            'description' => $this->request->getVar('description'),
+            'price' => $this->request->getVar('price'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        $query->update($id, $data);
+
+        $response = [
+            'status'   => 200,
+            'error'    => null,
+            'messages' => [
+                'success' => 'Updated Product.'
+            ]
+        ];
+
+        return $this->respond($response);
     }
 
     /**
@@ -52,6 +147,21 @@ class ProductsController extends ResourceController
      */
     public function delete($id = null)
     {
-        return $this->respond([], 200, 'Deleted Product Categories');
+        $query = new Products($this->request);
+        $data = $query->find($id);
+        if ($data) {
+            $query->delete($id);
+            $response = [
+                'status'   => 200,
+                'error'    => null,
+                'messages' => [
+                    'success' => 'Deleted Product'
+                ]
+            ];
+
+            return $this->respondDeleted($response);
+        }
+
+        return $this->failNotFound('Data not found with id ' . $id . '.', 404);
     }
 }

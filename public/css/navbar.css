@@ -1,0 +1,9 @@
+.navbar-custom {
+    background: linear-gradient(135deg,#e6f1c4,#c6e8d8);
+}
+
+.navbar-logo {
+    width: 100%;
+    max-width: 90px;
+    height: auto;
+}

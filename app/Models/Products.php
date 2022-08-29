@@ -4,21 +4,22 @@ namespace App\Models;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\Model;
 
-class ProductCategories extends Model
+class Products extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'product_categories';
+    protected $table            = 'products';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['name', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['name', 'category_id', 'description', 'price', 'image', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat    = 'datetime';
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
+    protected $deletedField  = 'deleted_at';
 
     // Validation
     protected $validationRules      = [];
@@ -37,8 +38,8 @@ class ProductCategories extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    protected $column_order = ['id', 'name'];
-    protected $column_search = ['name'];
+    protected $column_order = ['id', 'name', 'category_name', 'description'];
+    protected $column_search = ['products.name', 'products.description'];
     protected $order = ['id' => 'DESC'];
     protected $request;
     protected $db;
@@ -55,8 +56,9 @@ class ProductCategories extends Model
     private function getDatatablesQuery()
     {
         $i = 0;
+        $this->dt->join('product_categories', 'product_categories.id = products.category_id');
         $this->dt->select(
-            'product_categories.id, product_categories.name'
+            'products.id, products.category_id, products.name, products.description, products.price, product_categories.name as category_name'
         );
 
         foreach ($this->column_search as $item) {
